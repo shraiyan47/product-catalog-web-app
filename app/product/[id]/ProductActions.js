@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Heart, ShoppingCart } from "lucide-react"
 import { useCart } from "../../contexts/CartContext"
 import { useAuth } from "../../contexts/AuthContext"
@@ -7,8 +8,11 @@ import { useAuth } from "../../contexts/AuthContext"
 export default function ProductActions({ product }) {
   const { addToFavorites, removeFromFavorites, addToCart, isFavorite } = useCart()
   const { user } = useAuth()
+  const [isAddingToCart, setIsAddingToCart] = useState(false)
 
   const handleFavoriteClick = () => {
+    if (!user) return // This shouldn't happen since page is protected
+
     if (isFavorite(product.id)) {
       removeFromFavorites(product.id)
     } else {
@@ -16,8 +20,22 @@ export default function ProductActions({ product }) {
     }
   }
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
+    if (!user) return // This shouldn't happen since page is protected
+
+    setIsAddingToCart(true)
     addToCart(product)
+
+    // Show feedback
+    setTimeout(() => setIsAddingToCart(false), 1000)
+  }
+
+  if (!user) {
+    return (
+      <div className="text-center p-4 bg-gray-50 rounded-lg">
+        <p className="text-gray-600">Please log in to add items to cart or favorites</p>
+      </div>
+    )
   }
 
   return (
@@ -25,10 +43,11 @@ export default function ProductActions({ product }) {
       <div className="flex flex-col sm:flex-row gap-4">
         <button
           onClick={handleAddToCart}
-          className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+          disabled={isAddingToCart}
+          className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2 disabled:opacity-50"
         >
           <ShoppingCart className="h-5 w-5" />
-          <span>Add to Cart</span>
+          <span>{isAddingToCart ? "Added!" : "Add to Cart"}</span>
         </button>
 
         <button
@@ -43,10 +62,6 @@ export default function ProductActions({ product }) {
           <span>{isFavorite(product.id) ? "Remove from Favorites" : "Add to Favorites"}</span>
         </button>
       </div>
-
-      {!user && (
-        <p className="text-sm text-gray-500 text-center">Please log in to add items to your cart or favorites</p>
-      )}
     </div>
   )
 }

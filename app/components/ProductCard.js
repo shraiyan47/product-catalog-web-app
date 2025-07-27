@@ -12,10 +12,18 @@ export default function ProductCard({ product }) {
   const { addToFavorites, removeFromFavorites, isFavorite } = useCart()
   const { user, setLoginRedirect } = useAuth()
   const [showLoginModal, setShowLoginModal] = useState(false)
+  const [loginAction, setLoginAction] = useState(null) // 'details' or 'favorite'
   const router = useRouter()
 
   const handleFavoriteClick = (e) => {
     e.preventDefault()
+
+    if (!user) {
+      setLoginAction("favorite")
+      setShowLoginModal(true)
+      return
+    }
+
     if (isFavorite(product.id)) {
       removeFromFavorites(product.id)
     } else {
@@ -27,6 +35,7 @@ export default function ProductCard({ product }) {
     e.preventDefault()
 
     if (!user) {
+      setLoginAction("details")
       setShowLoginModal(true)
       return
     }
@@ -35,9 +44,22 @@ export default function ProductCard({ product }) {
   }
 
   const handleLoginRedirect = () => {
-    setLoginRedirect(`/product/${product.id}`)
+    if (loginAction === "details") {
+      setLoginRedirect(`/product/${product.id}`)
+    } else if (loginAction === "favorite") {
+      // For favorites, we'll handle the action after login via the auth event
+      setLoginRedirect(window.location.pathname)
+    }
+
     setShowLoginModal(false)
     router.push("/login")
+  }
+
+  const getModalMessage = () => {
+    if (loginAction === "favorite") {
+      return "You need to be logged in to add products to favorites."
+    }
+    return "You need to be logged in to view product details."
   }
 
   return (
@@ -91,6 +113,7 @@ export default function ProductCard({ product }) {
         onClose={() => setShowLoginModal(false)}
         onLogin={handleLoginRedirect}
         productTitle={product.title}
+        message={getModalMessage()}
       />
     </>
   )

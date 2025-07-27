@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react"
 import ProductCard from "./components/ProductCard"
 import SearchBar from "./components/SearchBar"
 import CategoryFilter from "./components/CategoryFilter"
+import ProductGridSkeleton from "./components/ProductGridSkeleton"
 import { getProducts, getCategories } from "./lib/products"
 
 export default function Home() {
@@ -37,14 +38,6 @@ export default function Home() {
     })
   }, [products, searchTerm, selectedCategory])
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
-    )
-  }
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="text-center mb-12">
@@ -62,7 +55,9 @@ export default function Home() {
         onCategoryChange={setSelectedCategory}
       />
 
-      {filteredProducts.length === 0 ? (
+      {isLoading ? (
+        <ProductGridSkeleton count={12} />
+      ) : filteredProducts.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg">
             {searchTerm ? "No products found matching your search." : "No products available."}

@@ -7,70 +7,229 @@ const CartContext = createContext()
 export function CartProvider({ children }) {
   const [favorites, setFavorites] = useState([])
   const [cart, setCart] = useState([])
+  const [currentUserId, setCurrentUserId] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    // Load from localStorage on mount
-    const storedFavorites = localStorage.getItem("favorites")
-    const storedCart = localStorage.getItem("cart")
-
-    if (storedFavorites) {
-      setFavorites(JSON.parse(storedFavorites))
+    // Listen for auth changes
+    const handleAuthChange = (event) => {
+      if (event.type === "auth-login") {
+        const userId = event.detail.userId
+        setCurrentUserId(userId)
+        loadUserData(userId)
+      } else if (event.type === "auth-logout") {
+        setCurrentUserId(null)
+        setFavorites([])
+        setCart([])
+      }
     }
-    if (storedCart) {
-      setCart(JSON.parse(storedCart))
+
+    // Listen for auth events
+    window.addEventListener("auth-login", handleAuthChange)
+    window.addEventListener("auth-logout", handleAuthChange)
+
+    return () => {
+      window.removeEventListener("auth-login", handleAuthChange)
+      window.removeEventListener("auth-logout", handleAuthChange)
     }
   }, [])
 
-  const addToFavorites = (product) => {
-    const newFavorites = [...favorites, product]
-    setFavorites(newFavorites)
-    localStorage.setItem("favorites", JSON.stringify(newFavorites))
-  }
+  const loadUserData = async (userId) => {
+    try {
+      setIsLoading(true)
+      const token = localStorage.getItem("token")
 
-  const removeFromFavorites = (productId) => {
-    const newFavorites = favorites.filter((item) => item.id !== productId)
-    setFavorites(newFavorites)
-    localStorage.setItem("favorites", JSON.stringify(newFavorites))
-  }
+      if (!token) return
 
-  const addToCart = (product) => {
-    const existingItem = cart.find((item) => item.id === product.id)
-    let newCart
+      const response = await fetch("/api/user-data", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
 
-    if (existingItem) {
-      newCart = cart.map((item) => (item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item))
-    } else {
-      newCart = [...cart, { ...product, quantity: 1 }]
+      if (response.ok) {
+        const data = await response.json()
+        setFavorites(data.data.favorites || [])
+        setCart(data.data.cart || [])
+      }
+    } catch (error) {
+      console.error("Failed to load user data:", error)
+    } finally {
+      setIsLoading(false)
     }
-
-    setCart(newCart)
-    localStorage.setItem("cart", JSON.stringify(newCart))
   }
 
-  const removeFromCart = (productId) => {
-    const newCart = cart.filter((item) => item.id !== productId)
-    setCart(newCart)
-    localStorage.setItem("cart", JSON.stringify(newCart))
-  }
+  const addToFavorites = async (product) => {
+    if (!currentUserId) return false
 
-  const updateQuantity = (productId, quantity) => {
-    if (quantity <= 0) {
-      removeFromCart(productId)
-      return
+    try {
+      const token = localStorage.getItem("token")
+      const response = await fetch("/api/favorite", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          productId: product.id.toString(),
+          action: "add",
+        }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setFavorites(data.favorites)
+        return true
+      }
+    } catch (error) {
+      console.error("Failed to add to favorites:", error)
     }
-
-    const newCart = cart.map((item) => (item.id === productId ? { ...item, quantity } : item))
-    setCart(newCart)
-    localStorage.setItem("cart", JSON.stringify(newCart))
+    return false
   }
 
-  const clearCart = () => {
-    setCart([])
-    localStorage.removeItem("cart")
+  const removeFromFavorites = async (productId) => {
+    if (!currentUserId) return false
+
+    try {
+      const token = localStorage.getItem("token")
+      const response = await fetch("/api/favorite", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          productId: productId.toString(),
+          action: "remove",
+        }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setFavorites(data.favorites)
+        return true
+      }
+    } catch (error) {
+      console.error("Failed to remove from favorites:", error)
+    }
+    return false
+  }
+
+  const addToCart = async (product) => {
+    if (!currentUserId) return false
+
+    try {
+      const token = localStorage.getItem("token")
+      const response = await fetch("/api/cart", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          action: "add",
+          productId: product.id.toString(),
+          product: product,
+        }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setCart(data.cart)
+        return true
+      }
+    } catch (error) {
+      console.error("Failed to add to cart:", error)
+    }
+    return false
+  }
+
+  const removeFromCart = async (productId) => {
+    if (!currentUserId) return false
+
+    try {
+      const token = localStorage.getItem("token")
+      const response = await fetch("/api/cart", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          action: "remove",
+          productId: productId.toString(),
+        }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setCart(data.cart)
+        return true
+      }
+    } catch (error) {
+      console.error("Failed to remove from cart:", error)
+    }
+    return false
+  }
+
+  const updateQuantity = async (productId, quantity) => {
+    if (!currentUserId) return false
+
+    try {
+      const token = localStorage.getItem("token")
+      const response = await fetch("/api/cart", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          action: "update",
+          productId: productId.toString(),
+          quantity: quantity,
+        }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setCart(data.cart)
+        return true
+      }
+    } catch (error) {
+      console.error("Failed to update quantity:", error)
+    }
+    return false
+  }
+
+  const clearCart = async () => {
+    if (!currentUserId) return false
+
+    try {
+      const token = localStorage.getItem("token")
+      const response = await fetch("/api/cart", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          action: "clear",
+        }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setCart(data.cart)
+        return true
+      }
+    } catch (error) {
+      console.error("Failed to clear cart:", error)
+    }
+    return false
   }
 
   const isFavorite = (productId) => {
-    return favorites.some((item) => item.id === productId)
+    return favorites.includes(productId.toString())
   }
 
   const getCartItemCount = () => {
@@ -78,7 +237,10 @@ export function CartProvider({ children }) {
   }
 
   const getCartTotal = () => {
-    return cart.reduce((total, item) => total + item.price * item.quantity, 0)
+    return cart.reduce((total, item) => {
+      const price = item.product?.price || 0
+      return total + price * item.quantity
+    }, 0)
   }
 
   const getCartSubtotal = () => {
@@ -102,6 +264,8 @@ export function CartProvider({ children }) {
       value={{
         favorites,
         cart,
+        currentUserId,
+        isLoading,
         addToFavorites,
         removeFromFavorites,
         addToCart,

@@ -2,8 +2,10 @@
 
 import { X } from "lucide-react"
 
-export default function LoginModal({ isOpen, onClose, onLogin, productTitle }) {
+export default function LoginModal({ isOpen, onClose, onLogin, productTitle, message }) {
   if (!isOpen) return null
+
+  const defaultMessage = "You need to be logged in to view product details."
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -16,7 +18,7 @@ export default function LoginModal({ isOpen, onClose, onLogin, productTitle }) {
         </div>
 
         <div className="mb-6">
-          <p className="text-gray-600 mb-2">You need to be logged in to view product details.</p>
+          <p className="text-gray-600 mb-2">{message || defaultMessage}</p>
           {productTitle && (
             <p className="text-sm text-gray-500">
               Product: <span className="font-medium">{productTitle}</span>

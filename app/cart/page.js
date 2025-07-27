@@ -7,8 +7,17 @@ import Link from "next/link"
 import { ArrowLeft, Plus, Minus, Trash2, ShoppingBag } from "lucide-react"
 
 export default function CartPage() {
-  const { cart, updateQuantity, removeFromCart, clearCart, getCartSubtotal, getTax, getShipping, getFinalTotal } =
-    useCart()
+  const {
+    cart,
+    updateQuantity,
+    removeFromCart,
+    clearCart,
+    getCartSubtotal,
+    getTax,
+    getShipping,
+    getFinalTotal,
+    isLoading,
+  } = useCart()
   const { user } = useAuth()
 
   if (!user) {
@@ -24,6 +33,17 @@ export default function CartPage() {
           >
             Login to Continue
           </Link>
+        </div>
+      </div>
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your cart...</p>
         </div>
       </div>
     )
@@ -71,25 +91,25 @@ export default function CartPage() {
 
           <div className="space-y-4">
             {cart.map((item) => (
-              <div key={item.id} className="bg-white rounded-lg shadow-md p-6">
+              <div key={item.productId} className="bg-white rounded-lg shadow-md p-6">
                 <div className="flex items-center space-x-4">
                   <Image
-                    src={item.image || "/placeholder.svg"}
-                    alt={item.title}
+                    src={item.product?.image || "/placeholder.svg"}
+                    alt={item.product?.title || "Product"}
                     width={80}
                     height={80}
                     className="w-20 h-20 object-cover rounded-md"
                   />
 
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">{item.title}</h3>
-                    <p className="text-gray-600 text-sm capitalize mb-2">{item.category}</p>
-                    <p className="text-xl font-bold text-blue-600">${item.price.toFixed(2)}</p>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">{item.product?.title}</h3>
+                    <p className="text-gray-600 text-sm capitalize mb-2">{item.product?.category}</p>
+                    <p className="text-xl font-bold text-blue-600">${item.product?.price?.toFixed(2)}</p>
                   </div>
 
                   <div className="flex items-center space-x-3">
                     <button
-                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                      onClick={() => updateQuantity(item.productId, item.quantity - 1)}
                       className="p-1 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
                     >
                       <Minus className="h-4 w-4" />
@@ -98,7 +118,7 @@ export default function CartPage() {
                     <span className="w-12 text-center font-medium">{item.quantity}</span>
 
                     <button
-                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                      onClick={() => updateQuantity(item.productId, item.quantity + 1)}
                       className="p-1 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
                     >
                       <Plus className="h-4 w-4" />
@@ -106,9 +126,11 @@ export default function CartPage() {
                   </div>
 
                   <div className="text-right">
-                    <p className="text-lg font-bold text-gray-900 mb-2">${(item.price * item.quantity).toFixed(2)}</p>
+                    <p className="text-lg font-bold text-gray-900 mb-2">
+                      ${((item.product?.price || 0) * item.quantity).toFixed(2)}
+                    </p>
                     <button
-                      onClick={() => removeFromCart(item.id)}
+                      onClick={() => removeFromCart(item.productId)}
                       className="text-red-600 hover:text-red-800 transition-colors"
                     >
                       <Trash2 className="h-5 w-5" />

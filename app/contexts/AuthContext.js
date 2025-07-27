@@ -12,52 +12,105 @@ export function AuthProvider({ children }) {
   const router = useRouter()
 
   useEffect(() => {
-    // Check for stored user data on mount
-    const storedUser = localStorage.getItem("user")
+    // Check for stored token on mount
+    const token = localStorage.getItem("token")
     const storedRedirectUrl = localStorage.getItem("redirectUrl")
 
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
+    if (token) {
+      // Verify token with server
+      verifyToken(token)
+    } else {
+      setIsLoading(false)
     }
+
     if (storedRedirectUrl) {
       setRedirectUrl(storedRedirectUrl)
     }
-    setIsLoading(false)
   }, [])
 
-  const login = async (username, password) => {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+  const verifyToken = async (token) => {
+    try {
+      const response = await fetch("/api/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
 
-    if (username === "demo" && password === "password") {
-      const userData = { id: 1, username, name: "Demo User" }
-      setUser(userData)
-      localStorage.setItem("user", JSON.stringify(userData))
-
-      // Handle redirect after login
-      const storedRedirectUrl = localStorage.getItem("redirectUrl")
-      if (storedRedirectUrl) {
-        localStorage.removeItem("redirectUrl")
-        setRedirectUrl(null)
-        router.push(storedRedirectUrl)
+      if (response.ok) {
+        const data = await response.json()
+        setUser(data.user)
+        // Dispatch login event for CartContext
+        window.dispatchEvent(new CustomEvent("auth-login", { detail: { userId: data.user.id } }))
+      } else {
+        // Token is invalid, remove it
+        localStorage.removeItem("token")
       }
-
-      return { success: true }
+    } catch (error) {
+      console.error("Token verification failed:", error)
+      localStorage.removeItem("token")
+    } finally {
+      setIsLoading(false)
     }
+  }
 
-    return { success: false, error: "Invalid credentials" }
+  const login = async (email, password) => {
+    try {
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        // Store token and user data
+        localStorage.setItem("token", data.token)
+        setUser(data.user)
+
+        // Dispatch login event
+        window.dispatchEvent(new CustomEvent("auth-login", { detail: { userId: data.user.id } }))
+
+        // Handle redirect after login
+        const storedRedirectUrl = localStorage.getItem("redirectUrl")
+        if (storedRedirectUrl) {
+          localStorage.removeItem("redirectUrl")
+          setRedirectUrl(null)
+          router.push(storedRedirectUrl)
+        }
+
+        return { success: true }
+      } else {
+        return { success: false, error: data.error }
+      }
+    } catch (error) {
+      console.error("Login error:", error)
+      return { success: false, error: "Network error occurred" }
+    }
   }
 
   const logout = () => {
     setUser(null)
-    localStorage.removeItem("user")
+    localStorage.removeItem("token")
     localStorage.removeItem("redirectUrl")
     setRedirectUrl(null)
+
+    // Dispatch logout event
+    window.dispatchEvent(new CustomEvent("auth-logout"))
+
+    // Redirect to home page after logout
+    router.push("/")
   }
 
   const setLoginRedirect = (url) => {
     setRedirectUrl(url)
     localStorage.setItem("redirectUrl", url)
+  }
+
+  const getAuthToken = () => {
+    return localStorage.getItem("token")
   }
 
   return (
@@ -69,6 +122,7 @@ export function AuthProvider({ children }) {
         isLoading,
         redirectUrl,
         setLoginRedirect,
+        getAuthToken,
       }}
     >
       {children}
