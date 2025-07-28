@@ -64,15 +64,15 @@ A production-grade, responsive product catalog web application built with **Next
 
 | Technology | Purpose | Version |
 |____________|_________|_____________________|
-| **Next.js** | React framework with App Router | 15.1.3 |
-| **React** | Component-based UI library | 18+ |
-| **JavaScript** | Primary programming language | ES2022 |
-| **TailwindCSS** | Utility-first CSS framework | 3.4+ |
-| **JWT** | Secure authentication tokens | 9.0+ |
-| **Context API** | Global state management | Built-in |
-| **Jest** | Unit testing framework | 29.7+ |
-| **React Testing Library** | Component testing utilities | 14.1+ |
-| **Lucide React** | Beautiful icon library | Latest |
+- | **Next.js** | React framework with App Router | 15.1.3 |
+- | **React** | Component-based UI library | 18+ |
+- | **JavaScript** | Primary programming language | ES2022 |
+- | **TailwindCSS** | Utility-first CSS framework | 3.4+ |
+- | **JWT** | Secure authentication tokens | 9.0+ |
+- | **Context API** | Global state management | Built-in |
+- | **Jest** | Unit testing framework | 29.7+ |
+- | **React Testing Library** | Component testing utilities | 14.1+ |
+- | **Lucide React** | Beautiful icon library | Latest |
 
 
 
@@ -256,7 +256,7 @@ npm install
 
 #### **3. Environment Setup (Optional)** [Not Implimented]
 
-# Create .env.local file
+##### Create .env.local file
 
 echo "JWT_SECRET=your-super-secret-jwt-key-change-in-production" > .env.local
 
