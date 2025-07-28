@@ -62,17 +62,18 @@ A production-grade, responsive product catalog web application built with **Next
 
 ## 🛠️ **Tech Stack**
 
-| Technology | Purpose | Version |
-|____________|_________|_____________________|
-- | **Next.js** | React framework with App Router | 15.1.3 |
-- | **React** | Component-based UI library | 18+ |
-- | **JavaScript** | Primary programming language | ES2022 |
-- | **TailwindCSS** | Utility-first CSS framework | 3.4+ |
-- | **JWT** | Secure authentication tokens | 9.0+ |
-- | **Context API** | Global state management | Built-in |
-- | **Jest** | Unit testing framework | 29.7+ |
-- | **React Testing Library** | Component testing utilities | 14.1+ |
-- | **Lucide React** | Beautiful icon library | Latest |
+| Technology                    | Purpose                             | Version             |
+|_______________________________|_____________________________________|_____________________|
+- | **Next.js**                 | React framework with App Router     | 15.1.3              |
+- | **React**                   | Component-based UI library          | 18+                 |
+- | **JavaScript**              | Primary programming language        | ES2022              |
+- | **TailwindCSS**             | Utility-first CSS framework         | 3.4+                |
+- | **JWT**                     | Secure authentication tokens        | 9.0+                |
+- | **Context API**             | Global state management             | Built-in            |
+- | **Zustand**                 | Lightweight state management        | Latest              |
+- | **Jest**                    | Unit testing framework              | 29.7+               |
+- | **React Testing Library**   | Component testing utilities         | 14.1+               |
+- | **Lucide React**            | Beautiful icon library              | Latest              |
 
 
 
@@ -89,7 +90,9 @@ A production-grade, responsive product catalog web application built with **Next
 │  Components → Pages → Layouts → Authentication UI          │
 
 └─────────────────────────────────────────────────────────────┘
+
                               ↕
+
 ┌─────────────────────────────────────────────────────────────┐
 
 │                  AUTHENTICATION LAYER                       │
@@ -97,6 +100,18 @@ A production-grade, responsive product catalog web application built with **Next
 ├─────────────────────────────────────────────────────────────┤
 
 │  JWT Tokens → Context API → Protected Routes               │
+
+└─────────────────────────────────────────────────────────────┘
+
+                              ↕
+
+┌─────────────────────────────────────────────────────────────┐
+
+│                  STATE MANAGEMENT LAYER                     │
+
+├─────────────────────────────────────────────────────────────┤
+
+│  Zustand Store → Context API → JWT Tokens                   │
 
 └─────────────────────────────────────────────────────────────┘
 
@@ -458,7 +473,7 @@ ____________________________
 3. API call → POST /api/cart or /api/favorite
 4. Server updates → JSON file modification
 5. Response → Updated data returned
-6. Context update → UI re-renders
+6. Zustand store update → UI re-renders
 7. Persistence → Data saved per user
 
 
