@@ -48,14 +48,14 @@ A production-grade, responsive product catalog web application built with **Next
 ## 🔑 **Authentication Credentials**
 
 ### **Test Users:**
-javascript
+#### javascript
 // User 1 - Has pre-loaded favorites and cart
-Email: test1@example.com
-Password: 123456
+- Email: test1@example.com
+- Password: 123456
 
 // User 2 - Different set of favorites and cart
-Email: test2@example.com  
-Password: abcdef
+- Email: test2@example.com  
+- Password: abcdef
 
 
 
@@ -245,6 +245,7 @@ product-catalog-app/
 #### **1. Clone Repository**
 
 git clone https://github.com/your-username/product-catalog-jwt.git
+
 cd product-catalog-jwt
 
 
@@ -256,7 +257,9 @@ npm install
 #### **3. Environment Setup (Optional)** [Not Implimented]
 
 # Create .env.local file
+
 echo "JWT_SECRET=your-super-secret-jwt-key-change-in-production" > .env.local
+
 echo "NEXT_PUBLIC_API_URL=https://fakestoreapi.com" >> .env.local
 
 
@@ -266,8 +269,8 @@ npm run dev
 
 #### **5. Build for Production**
 
-
 npm run build
+
 npm start
 
 
@@ -277,19 +280,29 @@ ____________________________
 
 ### JWT Implementation
 
-javascript
+#### javascript
 // Token Generation (lib/jwt.js)
+
 export function signToken(payload) {
+
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' })
+
 }
 
 // Token Verification
+
 export function verifyToken(token) {
+
   try {
+
     return jwt.verify(token, JWT_SECRET)
+
   } catch (error) {
+
     return null
+
   }
+
 }
 
 ____________________________
@@ -297,70 +310,109 @@ ____________________________
 ### API Endpoints:
 
 #### **POST /api/login**
-javascript
+#### javascript
 // Request
+
 {
+
   "email": "test1@example.com",
+
   "password": "123456"
+
 }
 
 // Response
+
 {
+
   "success": true,
+
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+
   "user": {
+
     "id": "user_1",
+
     "email": "test1@example.com",
+
     "name": "John Doe"
+
   }
+
 }
 
 
 #### **GET /api/me**
-javascript
+#### javascript
 // Headers
 Authorization: Bearer <jwt-token>
 
 // Response
+
 {
+
   "success": true,
+
   "user": {
+
     "id": "user_1",
+
     "email": "test1@example.com",
+
     "name": "John Doe"
+
   }
+
 }
 
 
 #### **GET /api/user-data**
-javascript
+#### javascript
 // Headers
+
 Authorization: Bearer <jwt-token>
 
 // Response
+
 {
+
   "success": true,
+
   "data": {
+
     "favorites": ["1", "3", "5"], 
+
     "cart": [
+
       { "productId": "1", "quantity": 2, "product": {...} }
+
     ]
+
   }
+
 }
 
 _____________________
 
 ### **Protected Route Implementation:**
-javascript
+#### javascript
 // Middleware pattern for API protection
+
 const token = getTokenFromRequest(request)
+
 const decoded = verifyToken(token)
 
+
 if (!decoded) {
+
   return NextResponse.json(
+
     { success: false, error: 'Invalid token' }, 
+
     { status: 401 }
+
   )
+
 }
 
 
