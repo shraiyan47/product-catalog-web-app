@@ -2,6 +2,10 @@
 
 A production-grade, responsive product catalog web application built with **Next.js 15**, **TailwindCSS**, and **JavaScript**. Features comprehensive JWT authentication, user-specific data management, and a modern UI/UX design.
 
+## 📝 Description
+
+**Product Catalog App** is a full-featured web application that allows users to browse, search, and manage products with a seamless shopping experience. It features robust JWT-based authentication, user-specific carts and favorites, and a modern, responsive interface. Built with Next.js and TailwindCSS, the app demonstrates best practices in authentication, state management, and UI/UX design, making it ideal for learning or production use.
+
 ## 🚀 Live Demo
 
 🔗 [Click here to view the live app](https://product-catalog-jwt.vercel.app)
