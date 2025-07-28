@@ -2,16 +2,16 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useAuth } from "../contexts/AuthContext"
 import Link from "next/link"
 import { ArrowLeft, Mail, Lock, Info } from "lucide-react"
+import useAuthStore from "../../store/authStore"
 
 export default function Login() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const { login, redirectUrl } = useAuth()
+  const { login, redirectUrl } = useAuthStore()
   const router = useRouter()
 
   const handleSubmit = async (e) => {
@@ -22,8 +22,10 @@ export default function Login() {
     try {
       const result = await login(email, password)
       if (result.success) {
-        // AuthContext handles the redirect automatically
-        if (!redirectUrl) {
+        // Handle redirect
+        if (redirectUrl) {
+          router.push(redirectUrl)
+        } else {
           router.push("/")
         }
       } else {

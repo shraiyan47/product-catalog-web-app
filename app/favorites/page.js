@@ -1,16 +1,18 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useCart } from "../contexts/CartContext"
-import { useAuth } from "../contexts/AuthContext"
 import { getProductById } from "../lib/products"
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft, Heart, ShoppingCart, Trash2 } from "lucide-react"
+import useAuthStore from "../../store/authStore"
+import useCartStore from "../../store/cartStore"
+import useFavoritesStore from "../../store/favoritesStore"
 
 export default function FavoritesPage() {
-  const { favorites, removeFromFavorites, addToCart, isLoading } = useCart()
-  const { user } = useAuth()
+  const { user } = useAuthStore()
+  const { addToCart } = useCartStore()
+  const { items: favorites, removeFromFavorites, isLoading } = useFavoritesStore()
   const [favoriteProducts, setFavoriteProducts] = useState([])
   const [loadingProducts, setLoadingProducts] = useState(false)
 

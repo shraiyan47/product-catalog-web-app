@@ -2,14 +2,16 @@
 
 import Link from "next/link"
 import { useState } from "react"
-import { useAuth } from "../contexts/AuthContext"
-import { useCart } from "../contexts/CartContext"
 import { Heart, ShoppingCart, User, LogOut } from "lucide-react"
+import useAuthStore from "../../store/authStore"
+import useCartStore from "../../store/cartStore"
+import useFavoritesStore from "../../store/favoritesStore"
 import LogoutConfirmModal from "./LogoutConfirmModal"
 
 export default function Navigation() {
-  const { user, logout } = useAuth()
-  const { favorites, getCartItemCount } = useCart()
+  const { user, logout } = useAuthStore()
+  const favorites = useFavoritesStore((state) => state.items)
+  const getCartItemCount = useCartStore((state) => state.getCartItemCount)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 

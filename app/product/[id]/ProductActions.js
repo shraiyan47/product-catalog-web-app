@@ -2,29 +2,31 @@
 
 import { useState } from "react"
 import { Heart, ShoppingCart } from "lucide-react"
-import { useCart } from "../../contexts/CartContext"
-import { useAuth } from "../../contexts/AuthContext"
+import useAuthStore from "../../../store/authStore"
+import useCartStore from "../../../store/cartStore"
+import useFavoritesStore from "../../../store/favoritesStore"
 
 export default function ProductActions({ product }) {
-  const { addToFavorites, removeFromFavorites, addToCart, isFavorite } = useCart()
-  const { user } = useAuth()
+  const { user } = useAuthStore()
+  const { addToCart } = useCartStore()
+  const { addToFavorites, removeFromFavorites, isFavorite } = useFavoritesStore()
   const [isAddingToCart, setIsAddingToCart] = useState(false)
 
-  const handleFavoriteClick = () => {
-    if (!user) return // This shouldn't happen since page is protected
+  const handleFavoriteClick = async () => {
+    if (!user) return
 
     if (isFavorite(product.id)) {
-      removeFromFavorites(product.id)
+      await removeFromFavorites(product.id)
     } else {
-      addToFavorites(product)
+      await addToFavorites(product)
     }
   }
 
   const handleAddToCart = async () => {
-    if (!user) return // This shouldn't happen since page is protected
+    if (!user) return
 
     setIsAddingToCart(true)
-    addToCart(product)
+    await addToCart(product)
 
     // Show feedback
     setTimeout(() => setIsAddingToCart(false), 1000)

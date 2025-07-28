@@ -1,14 +1,15 @@
 "use client"
 
-import { useCart } from "../contexts/CartContext"
-import { useAuth } from "../contexts/AuthContext"
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft, Plus, Minus, Trash2, ShoppingBag } from "lucide-react"
+import useAuthStore from "../../store/authStore"
+import useCartStore from "../../store/cartStore"
 
 export default function CartPage() {
+  const { user } = useAuthStore()
   const {
-    cart,
+    items: cart,
     updateQuantity,
     removeFromCart,
     clearCart,
@@ -17,8 +18,7 @@ export default function CartPage() {
     getShipping,
     getFinalTotal,
     isLoading,
-  } = useCart()
-  const { user } = useAuth()
+  } = useCartStore()
 
   if (!user) {
     return (

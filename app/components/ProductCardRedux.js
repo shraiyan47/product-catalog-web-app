@@ -3,19 +3,24 @@
 import Image from "next/image"
 import { useState } from "react"
 import { Heart, Star } from "lucide-react"
+import { useSelector, useDispatch } from "react-redux"
+import { useAuth } from "../contexts/AuthContext"
 import { useRouter } from "next/navigation"
-import useAuthStore from "../../store/authStore"
-import useCartStore from "../../store/cartStore"
-import useFavoritesStore from "../../store/favoritesStore"
+import { addToCartAsync } from "../store/slices/cartSlice"
+import { addToFavoritesAsync, removeFromFavoritesAsync, selectIsFavorite } from "../store/slices/favoritesSlice"
 import LoginModal from "./LoginModal"
 
-export default function ProductCard({ product }) {
-  const { user, setRedirectUrl } = useAuthStore()
-  const { addToCart } = useCartStore()
-  const { addToFavorites, removeFromFavorites, isFavorite } = useFavoritesStore()
+export default function ProductCardRedux({ product }) {
+  const dispatch = useDispatch()
+  const { user, setLoginRedirect } = useAuth()
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [loginAction, setLoginAction] = useState(null)
   const router = useRouter()
+
+  // Redux selectors
+  const isFavorite = useSelector(selectIsFavorite(product.id))
+  const cartLoading = useSelector((state) => state.cart.isLoading)
+  const favoritesLoading = useSelector((state) => state.favorites.isLoading)
 
   const handleFavoriteClick = async (e) => {
     e.preventDefault()
@@ -26,10 +31,10 @@ export default function ProductCard({ product }) {
       return
     }
 
-    if (isFavorite(product.id)) {
-      await removeFromFavorites(product.id)
+    if (isFavorite) {
+      dispatch(removeFromFavoritesAsync(product.id))
     } else {
-      await addToFavorites(product)
+      dispatch(addToFavoritesAsync(product))
     }
   }
 
@@ -45,11 +50,23 @@ export default function ProductCard({ product }) {
     router.push(`/product/${product.id}`)
   }
 
+  const handleAddToCart = async (e) => {
+    e.preventDefault()
+
+    if (!user) {
+      setLoginAction("cart")
+      setShowLoginModal(true)
+      return
+    }
+
+    dispatch(addToCartAsync(product))
+  }
+
   const handleLoginRedirect = () => {
     if (loginAction === "details") {
-      setRedirectUrl(`/product/${product.id}`)
-    } else if (loginAction === "favorite") {
-      setRedirectUrl(window.location.pathname)
+      setLoginRedirect(`/product/${product.id}`)
+    } else {
+      setLoginRedirect(window.location.pathname)
     }
 
     setShowLoginModal(false)
@@ -57,10 +74,14 @@ export default function ProductCard({ product }) {
   }
 
   const getModalMessage = () => {
-    if (loginAction === "favorite") {
-      return "You need to be logged in to add products to favorites."
+    switch (loginAction) {
+      case "favorite":
+        return "You need to be logged in to add products to favorites."
+      case "cart":
+        return "You need to be logged in to add products to cart."
+      default:
+        return "You need to be logged in to view product details."
     }
-    return "You need to be logged in to view product details."
   }
 
   return (
@@ -76,11 +97,12 @@ export default function ProductCard({ product }) {
           />
           <button
             onClick={handleFavoriteClick}
-            className={`absolute top-3 right-3 p-2 rounded-full transition-colors ${
-              isFavorite(product.id) ? "bg-red-500 text-white" : "bg-white text-gray-600 hover:text-red-500"
+            disabled={favoritesLoading}
+            className={`absolute top-3 right-3 p-2 rounded-full transition-colors disabled:opacity-50 ${
+              isFavorite ? "bg-red-500 text-white" : "bg-white text-gray-600 hover:text-red-500"
             }`}
           >
-            <Heart className="h-5 w-5" fill={isFavorite(product.id) ? "currentColor" : "none"} />
+            <Heart className="h-5 w-5" fill={isFavorite ? "currentColor" : "none"} />
           </button>
         </div>
 
@@ -100,12 +122,23 @@ export default function ProductCard({ product }) {
           )}
 
           <p className="text-2xl font-bold text-blue-600 mb-4">${product.price.toFixed(2)}</p>
-          <button
-            onClick={handleViewDetails}
-            className="block w-full bg-gray-900 text-white text-center py-2 px-4 rounded-md hover:bg-gray-800 transition-colors"
-          >
-            View Details
-          </button>
+
+          <div className="space-y-2">
+            <button
+              onClick={handleViewDetails}
+              className="block w-full bg-gray-900 text-white text-center py-2 px-4 rounded-md hover:bg-gray-800 transition-colors"
+            >
+              View Details
+            </button>
+
+            <button
+              onClick={handleAddToCart}
+              disabled={cartLoading}
+              className="block w-full bg-blue-600 text-white text-center py-2 px-4 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+            >
+              {cartLoading ? "Adding..." : "Add to Cart"}
+            </button>
+          </div>
         </div>
       </div>
 
